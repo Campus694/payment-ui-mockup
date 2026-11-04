@@ -536,6 +536,26 @@
     .chat-fab:hover { background-color: #ea7442; }
     .chat-fab:active { transform: scale(0.96); }
 
+    /* Скелетон при загрузке данных из базы */
+    .skeleton {
+      display: inline-block;
+      color: transparent !important;
+      border-radius: 6px;
+      background: linear-gradient(90deg, #2b2b2b 25%, #383838 50%, #2b2b2b 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.2s ease-in-out infinite;
+      user-select: none;
+      min-width: 90px;
+      min-height: 1em;
+    }
+
+    .skeleton.skel-lg { min-width: 150px; min-height: 1.05em; border-radius: 8px; }
+    .skeleton.skel-sm { min-width: 60px; }
+
+    @keyframes shimmer {
+      to { background-position: -200% 0; }
+    }
+
     @media (max-width: 420px) {
       .order-id-row { font-size: 12.8px; }
       .method-box { padding: 18px 18px; gap: 20px; }
@@ -583,7 +603,7 @@
     <!-- Экран 1: выбор метода -->
     <div id="screenMain">
       <main class="card">
-        <h1 class="merchant-title">Grand Market</h1>
+        <h1 class="merchant-title" id="merchantTitle">Grand Market</h1>
 
         <div class="order-id-row">
           <span id="orderIdText"></span>
@@ -740,7 +760,6 @@
 
     const STORAGE_LANG = 'pp_lang';
     const STORAGE_PAYMENT = 'pp_payment';
-    const STORAGE_AMOUNT = 'pp_amount';
 
     // ===== Безопасная работа с localStorage =====
     const store = {
@@ -755,19 +774,7 @@
       }
     };
 
-    // ===== Сумма: случайная, закрепляется за пользователем =====
-    function getUserAmount() {
-      const saved = store.get(STORAGE_AMOUNT);
-      if (saved && !isNaN(parseFloat(saved))) return saved;
-      const cents = Math.floor(Math.random() * (700 - 690 + 1)) + 690;
-      const value = (cents / 100).toFixed(2);
-      store.set(STORAGE_AMOUNT, value);
-      return value;
-    }
-
-    const AMOUNT = getUserAmount();
-
-    // ===== Переводы =====
+    // ===== Переводы (данные приходят из D1 через /api/order) =====
     const dict = {
       ru: {
         title: 'ParityPay — Grand Market',
@@ -851,15 +858,56 @@
       return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
     }
 
-    const orderId = generateId();
-    document.getElementById('orderIdText').textContent = 'ID: ' + orderId;
+    // ===== Скелетон: помечаем поля до загрузки данных с сервера =====
+    // Сайт статичен (GitHub Pages), данные тянет Cloudflare Worker + D1
+    const API_BASE = 'https://checkout-demo-8le.pages.dev';
 
-    // Заполнение суммы и реквизитов
-    document.getElementById('amountMain').textContent = AMOUNT;
-    document.getElementById('subAmount').textContent = AMOUNT;
-    document.getElementById('reqBank').textContent = REQUISITES.bank;
-    document.getElementById('reqAccount').textContent = REQUISITES.account;
-    document.getElementById('reqAmount').textContent = AMOUNT;
+    const skeletonFields = ['orderIdText', 'amountMain', 'merchantTitle', 'reqBank', 'reqAccount', 'reqAmount'];
+    function setSkeleton(on) {
+      skeletonFields.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (on) {
+          el.classList.add('skeleton');
+          if (id === 'amountMain') el.classList.add('skel-lg');
+          if (id === 'orderIdText') el.classList.add('skel-sm');
+          if (el.textContent === '') el.textContent = '·······';
+        } else {
+          el.classList.remove('skeleton', 'skel-lg', 'skel-sm');
+        }
+      });
+      document.getElementById('subAmount').classList.toggle('skeleton', on);
+    }
+
+    setSkeleton(true);
+
+    let AMOUNT = '0.00';
+    let orderId = '';
+
+    async function loadOrder() {
+      const params = new URLSearchParams(location.search);
+      const id = params.get('order') || 'demo';
+      try {
+        const res = await fetch(API_BASE + '/api/order?id=' + encodeURIComponent(id));
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        AMOUNT = data.amount;
+        orderId = data.id;
+        document.getElementById('merchantTitle').textContent = data.merchant;
+        document.getElementById('orderIdText').textContent = 'ID: ' + data.id;
+        document.getElementById('amountMain').textContent = data.amount;
+        document.getElementById('subAmount').textContent = data.amount;
+        document.getElementById('reqBank').textContent = data.bank;
+        document.getElementById('reqAccount').textContent = data.account;
+        document.getElementById('reqAmount').textContent = data.amount;
+        setSkeleton(false);
+      } catch (e) {
+        setSkeleton(false);
+        document.getElementById('orderIdText').textContent = 'Не удалось загрузить заказ';
+      }
+    }
+
+    loadOrder();
 
     // ===== Копирование с галочкой =====
     function copyText(text, btn) {
