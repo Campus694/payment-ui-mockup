@@ -536,25 +536,40 @@
     .chat-fab:hover { background-color: #ea7442; }
     .chat-fab:active { transform: scale(0.96); }
 
-    /* Скелетон при загрузке данных из базы */
+    /* Скелетон при загрузке данных из базы: блочный шиммер */
     .skeleton {
       display: inline-block;
-      color: transparent !important;
-      border-radius: 6px;
-      background: linear-gradient(90deg, #2b2b2b 25%, #383838 50%, #2b2b2b 75%);
+      border-radius: 8px;
+      background: linear-gradient(100deg, #232323 40%, #343434 50%, #232323 60%);
       background-size: 200% 100%;
-      animation: shimmer 1.2s ease-in-out infinite;
+      animation: shimmer 1.4s linear infinite;
+      vertical-align: middle;
       user-select: none;
-      min-width: 90px;
-      min-height: 1em;
     }
 
-    .skeleton.skel-lg { min-width: 150px; min-height: 1.05em; border-radius: 8px; }
-    .skeleton.skel-sm { min-width: 60px; }
+    .skel-title  { width: 190px; height: 30px; border-radius: 6px; }
+    .skel-id     { width: 150px; height: 15px; border-radius: 5px; }
+    .skel-amount { width: 170px; height: 42px; border-radius: 10px; }
+    .skel-line   { width: 130px; height: 17px; border-radius: 5px; }
 
     @keyframes shimmer {
       to { background-position: -200% 0; }
     }
+
+    .retry-btn {
+      background: none;
+      border: 1px solid #4a4a4a;
+      border-radius: 6px;
+      color: #DF5A28;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 3px 10px;
+      cursor: pointer;
+      transition: border-color 0.15s ease, background-color 0.15s ease;
+    }
+
+    .retry-btn:hover { border-color: #DF5A28; background-color: rgba(223, 90, 40, 0.08); }
 
     @media (max-width: 420px) {
       .order-id-row { font-size: 12.8px; }
@@ -858,56 +873,92 @@
       return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
     }
 
-    // ===== Скелетон: помечаем поля до загрузки данных с сервера =====
-    // Сайт статичен (GitHub Pages), данные тянет Cloudflare Worker + D1
+    // ===== Скелетон + загрузка данных с воркера =====
+    // Сайт статичен (GitHub Pages), данные тянет Cloudflare Worker + D1.
+    // Код заказа берём из пути URL: domain.com/fj62hdksj83jfkdg7dgsj1 → «fj62hdksj83jfkdg7dgsj1»
     const API_BASE = 'https://checkout-demo-8le.pages.dev';
 
-    const skeletonFields = ['orderIdText', 'amountMain', 'merchantTitle', 'reqBank', 'reqAccount', 'reqAmount'];
-    function setSkeleton(on) {
-      skeletonFields.forEach(id => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        if (on) {
-          el.classList.add('skeleton');
-          if (id === 'amountMain') el.classList.add('skel-lg');
-          if (id === 'orderIdText') el.classList.add('skel-sm');
-          if (el.textContent === '') el.textContent = '·······';
-        } else {
-          el.classList.remove('skeleton', 'skel-lg', 'skel-sm');
-        }
-      });
-      document.getElementById('subAmount').classList.toggle('skeleton', on);
-    }
-
-    setSkeleton(true);
+    const SKEL = {
+      merchantTitle: 'skel-title',
+      orderIdText:   'skel-id',
+      amountMain:    'skel-amount',
+      subAmount:     'skel-line',
+      reqBank:       'skel-line',
+      reqAccount:    'skel-line',
+      reqAmount:     'skel-line'
+    };
 
     let AMOUNT = '0.00';
     let orderId = '';
 
-    async function loadOrder() {
-      const params = new URLSearchParams(location.search);
-      const id = params.get('order') || 'demo';
-      try {
-        const res = await fetch(API_BASE + '/api/order?id=' + encodeURIComponent(id));
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        const data = await res.json();
-        AMOUNT = data.amount;
-        orderId = data.id;
-        document.getElementById('merchantTitle').textContent = data.merchant;
-        document.getElementById('orderIdText').textContent = 'ID: ' + data.id;
-        document.getElementById('amountMain').textContent = data.amount;
-        document.getElementById('subAmount').textContent = data.amount;
-        document.getElementById('reqBank').textContent = data.bank;
-        document.getElementById('reqAccount').textContent = data.account;
-        document.getElementById('reqAmount').textContent = data.amount;
-        setSkeleton(false);
-      } catch (e) {
-        setSkeleton(false);
-        document.getElementById('orderIdText').textContent = 'Не удалось загрузить заказ';
+    function setSkeleton(on) {
+      for (const [id, cls] of Object.entries(SKEL)) {
+        const el = document.getElementById(id);
+        if (!el) continue;
+        el.classList.remove('skeleton', 'skel-title', 'skel-id', 'skel-amount', 'skel-line');
+        if (on) {
+          el.classList.add('skeleton', cls);
+          el.textContent = '';
+        }
       }
     }
 
-    loadOrder();
+    function getOrderCode() {
+      const fromQuery = new URLSearchParams(location.search).get('order');
+      if (fromQuery) return fromQuery;
+      const segs = location.pathname.split('/').filter(Boolean);
+      const last = segs[segs.length - 1] || '';
+      // код заказа: 6–32 латинских буквы/цифр, не имя раздела и не файл
+      if (/^[A-Za-z0-9]{6,32}$/.test(last) && !last.endsWith('.html') && last !== 'payment-ui-mockup') return last;
+      return 'demo';
+    }
+
+    function showRetry() {
+      const row = document.querySelector('.order-id-row');
+      if (row.querySelector('.retry-btn')) return;
+      const btn = document.createElement('button');
+      btn.className = 'retry-btn';
+      btn.textContent = 'Повторить';
+      btn.addEventListener('click', () => {
+        btn.remove();
+        startLoading();
+      });
+      row.appendChild(btn);
+    }
+
+    async function loadOrder() {
+      const id = getOrderCode();
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        try {
+          const res = await fetch(API_BASE + '/api/order?id=' + encodeURIComponent(id));
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          const data = await res.json();
+          AMOUNT = data.amount;
+          orderId = data.id;
+          document.getElementById('merchantTitle').textContent = data.merchant;
+          document.getElementById('orderIdText').textContent = 'ID: ' + data.id;
+          document.getElementById('amountMain').textContent = data.amount;
+          document.getElementById('subAmount').textContent = data.amount;
+          document.getElementById('reqBank').textContent = data.bank;
+          document.getElementById('reqAccount').textContent = data.account;
+          document.getElementById('reqAmount').textContent = data.amount;
+          setSkeleton(false);
+          return;
+        } catch (e) {
+          if (attempt < 3) await new Promise(r => setTimeout(r, attempt * 800));
+        }
+      }
+      setSkeleton(false);
+      document.getElementById('orderIdText').textContent = 'Не удалось загрузить заказ';
+      showRetry();
+    }
+
+    function startLoading() {
+      setSkeleton(true);
+      loadOrder();
+    }
+
+    startLoading();
 
     // ===== Копирование с галочкой =====
     function copyText(text, btn) {
