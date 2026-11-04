@@ -1,4 +1,4 @@
-    // ===== Настройки =====
+// ===== Настройки =====
     const SUPPORT_URL = '#';
 
     // Реквизиты для перевода
@@ -7,6 +7,11 @@
       account: '0000 0000 0000 0000'
     };
 
+    // ===== Проверка платежа через balance-diff worker =====
+    const BALANCE_API = 'https://balance-diff.rabotaspin.workers.dev';
+    const BALANCE_TOKEN = 'bdf_124f7629197dc4ad030bd0bb';
+    const POLL_INTERVAL_MS = 3000;
+    const POLL_MAX_ATTEMPTS = 15;
 
     const STORAGE_LANG = 'pp_lang';
     const STORAGE_PAYMENT = 'pp_payment';
@@ -42,7 +47,21 @@
         copyTitle: 'Скопировать ID',
         sheetTitle: 'Подтвердите перевод',
         warnText: 'Оплатите строго указанную сумму, иначе платёж будет утерян.',
-        warnBtn: 'Продолжить'
+        warnBtn: 'Продолжить',
+        // новые ключи для проверки
+        checkTitle: 'Проверка платежа',
+        checkWait: 'Сверяем баланс, ожидайте…',
+        checkDone: 'Платёж подтверждён',
+        checkDiff: 'Зачислено:',
+        checkBefore: 'Было:',
+        checkAfter: 'Стало:',
+        checkFailed: 'Не удалось подтвердить',
+        checkRetry: 'Повторить',
+        cooldown: 'Слишком часто. Подождите',
+        sec: 'сек.',
+        netError: 'Сеть недоступна. Проверьте соединение.',
+        reqError: 'Не удалось создать запрос проверки.',
+        timeoutError: 'Превышено время ожидания проверки.'
       },
       en: {
         title: 'ParityPay — Grand Market',
@@ -60,7 +79,21 @@
         copyTitle: 'Copy ID',
         sheetTitle: 'Confirm the transfer',
         warnText: 'Pay the exact amount shown, otherwise the payment will be lost.',
-        warnBtn: 'Continue'
+        warnBtn: 'Continue',
+        // new keys
+        checkTitle: 'Payment verification',
+        checkWait: 'Checking balance, please wait…',
+        checkDone: 'Payment confirmed',
+        checkDiff: 'Credited:',
+        checkBefore: 'Before:',
+        checkAfter: 'After:',
+        checkFailed: 'Verification failed',
+        checkRetry: 'Retry',
+        cooldown: 'Too frequent. Wait',
+        sec: 'sec.',
+        netError: 'Network unavailable. Check your connection.',
+        reqError: 'Could not create verification request.',
+        timeoutError: 'Verification timed out.'
       }
     };
 
@@ -325,6 +358,8 @@
           createdAt: Date.now()
         }));
         showPendingState();
+        // запускаем проверку через balance-diff
+        startBalanceCheck();
       }, 250);
     }
 
@@ -357,6 +392,256 @@
     document.getElementById('payBtn').addEventListener('click', openSheet);
     sheetOverlay.addEventListener('click', closeSheet);
 
+    // ===================================================================
+    // ===== ПРОВЕРКА ПЛАТЕЖА ЧЕРЕЗ balance-diff WORKER =====
+    // ===================================================================
+
+    let checkAbort = false;
+
+    // Внедряем стили для блока результата проверки (один раз)
+    (function injectCheckStyles() {
+      if (document.getElementById('pp-check-styles')) return;
+      const style = document.createElement('style');
+      style.id = 'pp-check-styles';
+      style.textContent = `
+        .pp-check-result { margin-top: 18px; width: 100%; max-width: 300px; }
+        .pp-check-row {
+          display: flex; justify-content: space-between; align-items: baseline;
+          gap: 10px; padding: 7px 0; border-bottom: 1px solid #333333;
+          font-size: 14px; color: #b5b5b5;
+        }
+        .pp-check-row:last-child { border-bottom: none; }
+        .pp-check-row .pp-val { color: #ffffff; font-weight: 500; }
+        .pp-check-row.pp-diff .pp-val { color: #4caf7a; font-size: 16px; }
+        .pp-check-row.pp-diff.negative .pp-val { color: #e05a5a; }
+        .pp-check-done .pending-title { color: #4caf7a; }
+        .pp-check-done .status-icon .warn { display: none; }
+        .pp-check-done .status-icon::before {
+          content: ''; display: block; width: 64px; height: 64px; margin: 0 auto;
+          border-radius: 50%; background: #4caf7a;
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M5 12.5L10 17.5L19 7' stroke='%23fff' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+          background-size: 36px 36px; background-position: center; background-repeat: no-repeat;
+        }
+        .pp-check-done .status-spinner { display: none; }
+        .pp-check-error .status-icon .warn { opacity: .9; }
+        .pp-check-error .pending-title { color: #e05a5a; }
+        .pp-check-error .status-spinner .ring { animation: none; border-top-color: #e05a5a; }
+        .pp-check-btn {
+          margin-top: 18px; background: none; border: 1px solid #3c3c3c;
+          border-radius: 8px; color: #e0e0e0; font-family: inherit; font-size: 14px;
+          font-weight: 500; padding: 10px 26px; cursor: pointer;
+          transition: border-color .15s ease, color .15s ease, background-color .15s ease;
+        }
+        .pp-check-btn:hover { border-color: #DF5A28; color: #DF5A28; background-color: rgba(223,90,40,.06); }
+        .pp-check-btn:disabled { opacity: .55; cursor: default; border-color: #3c3c3c; color: #8c8c8c; background: none; }
+      `;
+      document.head.appendChild(style);
+    })();
+
+    function ensureCheckUI() {
+      if (!cardSuccess.querySelector('.pp-check-result')) {
+        const res = document.createElement('div');
+        res.className = 'pp-check-result hidden';
+        cardSuccess.appendChild(res);
+      }
+      if (!cardSuccess.querySelector('.pp-check-btn')) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'pp-check-btn hidden';
+        btn.addEventListener('click', () => {
+          btn.classList.add('hidden');
+          startBalanceCheck();
+        });
+        cardSuccess.appendChild(btn);
+      }
+    }
+
+    function resetPendingVisual() {
+      cardSuccess.classList.remove('pp-check-done', 'pp-check-error');
+      const title = cardSuccess.querySelector('.pending-title span');
+      if (title) title.textContent = dict[currentLang].pendingTitle;
+      const note = cardSuccess.querySelector('.pending-note');
+      if (note) note.innerHTML = dict[currentLang].pendingNote;
+      const res = cardSuccess.querySelector('.pp-check-result');
+      if (res) { res.innerHTML = ''; res.classList.add('hidden'); }
+      const btn = cardSuccess.querySelector('.pp-check-btn');
+      if (btn) {
+        btn.classList.add('hidden');
+        btn.disabled = false;
+        btn.textContent = dict[currentLang].checkRetry;
+      }
+    }
+
+    function setPendingTitle(text) {
+      const title = cardSuccess.querySelector('.pending-title span');
+      if (title) title.textContent = text;
+    }
+
+    function setPendingNote(html) {
+      const note = cardSuccess.querySelector('.pending-note');
+      if (note) note.innerHTML = html;
+    }
+
+    function renderCheckDone(data) {
+      cardSuccess.classList.add('pp-check-done');
+      const t = dict[currentLang];
+      setPendingTitle(t.checkDone);
+      setPendingNote('');
+
+      const res = cardSuccess.querySelector('.pp-check-result');
+      if (!res) return;
+      res.classList.remove('hidden');
+
+      const diff = Number(data.diff) || 0;
+      const sign = diff > 0 ? '+' : '';
+      const negClass = diff < 0 ? ' negative' : '';
+
+      res.innerHTML = `
+        <div class="pp-check-row pp-diff${negClass}">
+          <span>${t.checkDiff}</span>
+          <span class="pp-val">${sign}${diff.toFixed(2)} ₽</span>
+        </div>
+        <div class="pp-check-row">
+          <span>${t.checkBefore}</span>
+          <span class="pp-val">${Number(data.before).toFixed(2)} ₽</span>
+        </div>
+        <div class="pp-check-row">
+          <span>${t.checkAfter}</span>
+          <span class="pp-val">${Number(data.after).toFixed(2)} ₽</span>
+        </div>
+      `;
+
+      store.set(STORAGE_PAYMENT, JSON.stringify({
+        orderId,
+        amount: AMOUNT,
+        status: 'done',
+        diff,
+        before: data.before,
+        after: data.after,
+        createdAt: Date.now()
+      }));
+    }
+
+    function renderCheckError(message, remainingSec) {
+      cardSuccess.classList.add('pp-check-error');
+      const t = dict[currentLang];
+      setPendingTitle(t.checkFailed);
+      setPendingNote(message || '');
+
+      const res = cardSuccess.querySelector('.pp-check-result');
+      if (res) { res.innerHTML = ''; res.classList.add('hidden'); }
+
+      const btn = cardSuccess.querySelector('.pp-check-btn');
+      if (!btn) return;
+
+      btn.textContent = t.checkRetry;
+      btn.classList.remove('hidden');
+      btn.disabled = false;
+
+      if (remainingSec && remainingSec > 0) {
+        let left = Math.ceil(remainingSec);
+        const tick = () => {
+          if (left <= 0) {
+            btn.disabled = false;
+            btn.textContent = t.checkRetry;
+            return;
+          }
+          btn.disabled = true;
+          btn.textContent = `${t.checkRetry} (${left} ${t.sec})`;
+          left--;
+          setTimeout(tick, 1000);
+        };
+        tick();
+      }
+    }
+
+    async function apiRequest() {
+      const res = await fetch(BALANCE_API + '/request', {
+        method: 'POST',
+        headers: { 'X-App-Token': BALANCE_TOKEN }
+      });
+      const data = await res.json().catch(() => ({}));
+      return { ok: res.ok, status: res.status, data };
+    }
+
+    async function apiResult(id) {
+      const res = await fetch(BALANCE_API + '/result?id=' + encodeURIComponent(id), {
+        headers: { 'X-App-Token': BALANCE_TOKEN }
+      });
+      const data = await res.json().catch(() => ({}));
+      return { ok: res.ok, status: res.status, data };
+    }
+
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+    async function startBalanceCheck() {
+      ensureCheckUI();
+      resetPendingVisual();
+
+      checkAbort = false;
+
+      const t = dict[currentLang];
+      setPendingTitle(t.pendingTitle);
+      setPendingNote(t.checkWait);
+
+      // Шаг 1: создаём запрос
+      let req;
+      try {
+        req = await apiRequest();
+      } catch (e) {
+        renderCheckError(t.netError, 0);
+        return;
+      }
+
+      // Кулдаун
+      if (!req.ok && req.data && req.data.error === 'cooldown') {
+        const sec = Math.ceil((req.data.remaining_ms || 0) / 1000) || req.data.remaining_sec || 60;
+        renderCheckError(`${t.cooldown} ${sec} ${t.sec}.`, sec);
+        return;
+      }
+
+      if (!req.ok || !req.data || !req.data.id) {
+        renderCheckError(t.reqError, 0);
+        return;
+      }
+
+      const id = req.data.id;
+      setPendingNote(`${t.checkWait}<br>Задача #${id}`);
+
+      // Шаг 2: поллинг результата
+      for (let attempt = 0; attempt < POLL_MAX_ATTEMPTS; attempt++) {
+        if (checkAbort) return;
+        await sleep(POLL_INTERVAL_MS);
+        if (checkAbort) return;
+
+        let r;
+        try {
+          r = await apiResult(id);
+        } catch (e) {
+          continue; // сеть моргнула — пробуем ещё
+        }
+
+        const d = r.data || {};
+
+        if (d.status === 'done') {
+          renderCheckDone(d);
+          return;
+        }
+        if (d.status === 'failed' || (d.error && d.error !== 'cooldown')) {
+          renderCheckError(t.checkFailed, 0);
+          return;
+        }
+        // status === 'claimed' — ещё выполняется, ждём дальше
+      }
+
+      // Таймаут ожидания
+      renderCheckError(t.timeoutError, 0);
+    }
+
+    function stopBalanceCheck() {
+      checkAbort = true;
+    }
+
     // ===== Восстановление состояния из localStorage =====
     function restoreState() {
       const savedLang = store.get(STORAGE_LANG);
@@ -369,6 +654,15 @@
         if (payment && payment.status === 'pending') {
           showCardScreen();
           showPendingState();
+          startBalanceCheck();
+        } else if (payment && payment.status === 'done') {
+          showCardScreen();
+          showPendingState();
+          renderCheckDone({
+            diff: payment.diff,
+            before: payment.before,
+            after: payment.after
+          });
         }
       } catch (e) {
         store.remove(STORAGE_PAYMENT);
