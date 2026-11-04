@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ParityPay — Grand Market</title>
+  <title>ParityPay — макет</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
@@ -50,42 +50,6 @@
       height: auto;
       user-select: none;
     }
-
-    .lang-group {
-      display: flex;
-      gap: 6px;
-      background: #1c1c1c;
-      padding: 4px;
-      border-radius: 10px;
-      border: 1px solid #2a2a2a;
-    }
-
-    .lang-btn {
-      width: 42px;
-      height: 30px;
-      border-radius: 7px;
-      border: none;
-      font-family: inherit;
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background-color 0.18s ease, color 0.18s ease;
-    }
-
-    .lang-btn.active {
-      background-color: #363636;
-      color: #ffffff;
-    }
-
-    .lang-btn.inactive {
-      background-color: transparent;
-      color: #8f8f8f;
-    }
-
-    .lang-btn.inactive:hover { color: #c5c5c5; }
 
     /* Основная карточка */
     .card {
@@ -222,7 +186,7 @@
       line-height: 1.4;
     }
 
-    /* Экран реквизитов: кнопка прижата к низу (только в режиме формы) */
+    /* Экран реквизитов: кнопка прижата к низу */
     #screenCard.form-mode > .card {
       min-height: calc(100vh - 150px);
       display: flex;
@@ -298,7 +262,7 @@
     .pay-btn:hover { background-color: #ea7442; }
     .pay-btn:active { transform: scale(0.99); }
 
-    /* Экран ожидания проверки / успех (компактный) */
+    /* Экран ожидания */
     .pending {
       text-align: center;
       padding: 20px 0 8px;
@@ -383,42 +347,37 @@
       margin: 0 auto;
     }
 
-    /* Успех: круглая галочка */
-    .success-wrap {
-      padding: 36px 0 12px;
-      text-align: center;
-    }
-
-    .success-circle {
-      width: 96px;
-      height: 96px;
-      margin: 0 auto 20px;
-      border-radius: 50%;
-      background: radial-gradient(circle at 30% 30%, #5fd28b, #3ba86b 70%);
+    /* Текст поверх экрана обработки */
+    .final-overlay {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(1200px 600px at 50% -10%, #1d1d1d 0%, #161616 55%);
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 10px 28px rgba(76, 175, 122, 0.35);
-      animation: popIn 0.4s ease-out;
+      z-index: 80;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
     }
 
-    .success-circle svg {
-      width: 46px;
-      height: 46px;
+    .final-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
     }
 
-    @keyframes popIn {
-      0% { transform: scale(0.6); opacity: 0; }
-      70% { transform: scale(1.06); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    .success-title {
-      font-size: 24px;
-      font-weight: 700;
+    .final-text {
+      max-width: 300px;
+      text-align: center;
+      font-size: 17px;
+      font-weight: 500;
+      line-height: 1.55;
       color: #ffffff;
-      letter-spacing: 0.2px;
+      transform: translateY(8px);
+      transition: transform 0.4s ease;
     }
+
+    .final-overlay.open .final-text { transform: translateY(0); }
 
     /* Оверлей и панель подтверждения */
     .sheet-overlay {
@@ -515,41 +474,6 @@
     .chat-fab:hover { background-color: #ea7442; }
     .chat-fab:active { transform: scale(0.96); }
 
-    /* Скелетон */
-    .skeleton {
-      display: inline-block;
-      border-radius: 8px;
-      background: linear-gradient(100deg, #232323 40%, #343434 50%, #232323 60%);
-      background-size: 200% 100%;
-      animation: shimmer 1.4s linear infinite;
-      vertical-align: middle;
-      user-select: none;
-    }
-
-    .skel-title  { width: 190px; height: 30px; border-radius: 6px; }
-    .skel-id     { width: 150px; height: 15px; border-radius: 5px; }
-    .skel-amount { width: 170px; height: 42px; border-radius: 10px; }
-    .skel-line   { width: 130px; height: 17px; border-radius: 5px; }
-
-    @keyframes shimmer {
-      to { background-position: -200% 0; }
-    }
-
-    .retry-btn {
-      background: none;
-      border: 1px solid #4a4a4a;
-      border-radius: 6px;
-      color: #DF5A28;
-      font-family: inherit;
-      font-size: 12px;
-      font-weight: 500;
-      padding: 3px 10px;
-      cursor: pointer;
-      transition: border-color 0.15s ease, background-color 0.15s ease;
-    }
-
-    .retry-btn:hover { border-color: #DF5A28; background-color: rgba(223, 90, 40, 0.08); }
-
     @media (max-width: 420px) {
       .order-id-row { font-size: 12.8px; }
       .method-box { padding: 18px 18px; gap: 20px; }
@@ -587,21 +511,16 @@
           <path d="M111.5 39.8V47.8C111.5 50.2 113 51.5 115.5 51.5H123.5M123.5 39.8V54.5C123.5 56.8 122 58 119.2 58H113" stroke="#EAEAEA" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
         </g>
       </svg>
-
-      <div class="lang-group">
-        <button class="lang-btn active" type="button" data-lang="ru">RU</button>
-        <button class="lang-btn inactive" type="button" data-lang="en">EN</button>
-      </div>
     </header>
 
     <!-- Экран 1: выбор метода -->
     <div id="screenMain">
       <main class="card">
-        <h1 class="merchant-title" id="merchantTitle">Grand Market</h1>
+        <h1 class="merchant-title">Demo Store</h1>
 
         <div class="order-id-row">
-          <span id="orderIdText"></span>
-          <button class="copy-btn" id="copyBtn" type="button">
+          <span>ID: a1b2c3d4e5f6h7i8j0k1l</span>
+          <button class="copy-btn" id="copyIdBtn" type="button" aria-label="Скопировать ID">
             <svg width="16" height="18" viewBox="0 0 16 18" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M11.5 1H3C2.17 1 1.5 1.67 1.5 2.5V13H3V2.5H11.5V1ZM14 4H5.5C4.67 4 4 4.67 4 5.5V15.5C4 16.33 4.67 17 5.5 17H14C14.83 17 15.5 16.33 15.5 15.5V5.5C15.5 4.67 14.83 4 14 4ZM14 15.5H5.5V5.5H14V15.5Z" fill="currentColor"/>
             </svg>
@@ -609,15 +528,15 @@
         </div>
 
         <div class="amount">
-          <span id="amountMain"></span>
+          <span>6.97</span>
           <svg class="rub" viewBox="0 0 601 657" aria-label="₽"><use href="#rub"/></svg>
         </div>
         <div class="commission">
-          <span data-i18n="commission">Комиссия: 0</span>
+          <span>Комиссия: 0</span>
           <svg class="rub" viewBox="0 0 601 657" aria-label="₽"><use href="#rub"/></svg>
         </div>
 
-        <h2 class="method-heading" data-i18n="chooseMethod">Выберите метод</h2>
+        <h2 class="method-heading">Выберите метод</h2>
 
         <div class="methods-list">
           <button class="method-box" type="button" id="cardMethod">
@@ -626,7 +545,7 @@
               <path d="M2 10H22" stroke="currentColor" stroke-width="1.8"/>
               <path d="M6 15H10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
             </svg>
-            <span class="method-label" data-i18n="byCard">Банковской картой</span>
+            <span class="method-label">Банковской картой</span>
           </button>
         </div>
       </main>
@@ -636,19 +555,19 @@
     <div id="screenCard" class="hidden">
       <main class="card">
         <div id="cardForm">
-          <h2 class="card-title" data-i18n="cardTitle">Перевод по реквизитам</h2>
+          <h2 class="card-title">Перевод по реквизитам</h2>
           <div class="card-sub">
-            <span data-i18n="toPay">К оплате:</span> <span id="subAmount"></span>
+            <span>К оплате:</span> <span>6.97</span>
             <svg class="rub" viewBox="0 0 601 657" aria-label="₽"><use href="#rub"/></svg>
           </div>
 
           <div class="req-list">
             <div class="req-row">
               <div>
-                <div class="req-label" data-i18n="reqBank">Банк</div>
-                <div class="req-value" id="reqBank"></div>
+                <div class="req-label">Банк</div>
+                <div class="req-value" id="reqBank">Belarusbank</div>
               </div>
-              <button class="copy-btn" type="button" data-copy="reqBank" aria-label="Copy">
+              <button class="copy-btn" type="button" data-copy="reqBank" aria-label="Скопировать">
                 <svg width="16" height="18" viewBox="0 0 16 18" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M11.5 1H3C2.17 1 1.5 1.67 1.5 2.5V13H3V2.5H11.5V1ZM14 4H5.5C4.67 4 4 4.67 4 5.5V15.5C4 16.33 4.67 17 5.5 17H14C14.83 17 15.5 16.33 15.5 15.5V5.5C15.5 4.67 14.83 4 14 4ZM14 15.5H5.5V5.5H14V15.5Z" fill="currentColor"/>
                 </svg>
@@ -657,10 +576,10 @@
 
             <div class="req-row">
               <div>
-                <div class="req-label" data-i18n="reqAccount">Номер карты / счёта</div>
-                <div class="req-value" id="reqAccount"></div>
+                <div class="req-label">Номер карты / счёта</div>
+                <div class="req-value" id="reqAccount">0000 •••• •••• 0000</div>
               </div>
-              <button class="copy-btn" type="button" data-copy="reqAccount" aria-label="Copy">
+              <button class="copy-btn" type="button" data-copy="reqAccount" aria-label="Скопировать">
                 <svg width="16" height="18" viewBox="0 0 16 18" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M11.5 1H3C2.17 1 1.5 1.67 1.5 2.5V13H3V2.5H11.5V1ZM14 4H5.5C4.67 4 4 4.67 4 5.5V15.5C4 16.33 4.67 17 5.5 17H14C14.83 17 15.5 16.33 15.5 15.5V5.5C15.5 4.67 14.83 4 14 4ZM14 15.5H5.5V5.5H14V15.5Z" fill="currentColor"/>
                 </svg>
@@ -669,10 +588,10 @@
 
             <div class="req-row">
               <div>
-                <div class="req-label" data-i18n="reqAmount">Сумма</div>
-                <div class="req-value" id="reqAmount"></div>
+                <div class="req-label">Сумма</div>
+                <div class="req-value" id="reqAmount">6.97</div>
               </div>
-              <button class="copy-btn" type="button" data-copy="reqAmount" aria-label="Copy">
+              <button class="copy-btn" type="button" data-copy="reqAmount" aria-label="Скопировать">
                 <svg width="16" height="18" viewBox="0 0 16 18" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M11.5 1H3C2.17 1 1.5 1.67 1.5 2.5V13H3V2.5H11.5V1ZM14 4H5.5C4.67 4 4 4.67 4 5.5V15.5C4 16.33 4.67 17 5.5 17H14C14.83 17 15.5 16.33 15.5 15.5V5.5C15.5 4.67 14.83 4 14 4ZM14 15.5H5.5V5.5H14V15.5Z" fill="currentColor"/>
                 </svg>
@@ -680,49 +599,40 @@
             </div>
           </div>
 
-          <button class="pay-btn" type="button" id="payBtn">
-            <span data-i18n="payBtn">Проверить платёж</span>
-          </button>
+          <button class="pay-btn" type="button" id="payBtn">Проверить платёж</button>
         </div>
 
-        <!-- Экран ожидания проверки -->
+        <!-- Экран обработки -->
         <div id="cardSuccess" class="pending hidden">
           <div class="status-icon">
-            <svg class="warn" viewBox="0 0 64 56" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M32 5 L60 50 Q63 55 57 55 H7 Q1 55 4 50 Z" fill="#F3C623" stroke="#F3C623" stroke-width="4" stroke-linejoin="round"/>
-              <rect x="29.5" y="20" width="5" height="19" rx="2.5" fill="#161616"/>
-              <circle cx="32" cy="45" r="2.8" fill="#161616"/>
+            <svg class="warn" viewBox="0 0 72 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M36 2 L70 60 H2 Z" fill="#F3C623"/>
+              <rect x="33.5" y="22" width="5" height="19" rx="2.5" fill="#161616"/>
+              <circle cx="36" cy="47" r="2.8" fill="#161616"/>
             </svg>
             <div class="status-spinner">
               <div class="ring"></div>
             </div>
           </div>
           <div class="pending-title">
-            <span data-i18n="pendingTitle">Обработка</span>
+            Обработка
             <div class="dots"><span></span><span></span><span></span></div>
           </div>
-          <p class="pending-note" data-i18n="pendingNote">Проверка занимает<br>до 2 минут, ожидайте.</p>
-
-
-        </div>
-
-        <!-- Экран успеха -->
-        <div id="cardDone" class="success-wrap hidden">
-          <div class="success-circle">
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M5 12.5L10 17.5L19 7" stroke="#ffffff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-          <div class="success-title" data-i18n="successTitle">Успешно!</div>
+          <p class="pending-note">Проверка занимает<br>до 2 минут, ожидайте.</p>
         </div>
       </main>
     </div>
   </div>
 
+  <!-- Финальный текст поверх -->
+  <div class="final-overlay" id="finalOverlay">
+    <div class="final-text">Закройте сайт и нажмите<br>«Проверить платёж» в боте.</div>
+  </div>
+
   <!-- Оверлей и панель подтверждения -->
   <div class="sheet-overlay" id="sheetOverlay"></div>
   <div class="sheet" id="sheet" role="dialog" aria-modal="true">
-    <div class="sheet-title" data-i18n="sheetTitle">Подтвердите перевод</div>
+    <div class="sheet-title">Подтвердите перевод</div>
 
     <div class="slider" id="slider">
       <div class="slider-handle" id="sliderHandle">
@@ -733,13 +643,121 @@
     </div>
   </div>
 
-  <!-- Кнопка поддержки -->
-  <a class="chat-fab" id="chatFab" href="#" target="_blank" rel="noopener" aria-label="Support">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-      <path d="M20 4H4C2.9 4 2 4.9 2 6V20L6 16H20C21.1 16 22 15.1 22 14V6C22 4.9 21.1 4 20 4ZM18 11H6V9.5H18V11ZM18 8H6V6.5H18V8Z" fill="#FFFFFF"/>
+  <!-- Кнопка поддержки (декор) -->
+  <a class="chat-fab" id="chatFab" href="#" aria-label="Support">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M21 11.5C21 16.194 16.97 20 12 20C10.89 20 9.82 19.8 8.84 19.44L4 21L5.51 16.42C4.56 15.03 4 13.34 4 11.5C4 6.806 8.03 3 12 3C16.97 3 21 6.806 21 11.5Z" stroke="#ffffff" stroke-width="2" stroke-linejoin="round"/>
     </svg>
   </a>
 
-  <script src="/payment-ui-mockup/app.js"></script>
+  <script>
+    (function () {
+      // ===== Копирование =====
+      function copyText(text, btn) {
+        const done = () => {
+          btn.classList.add('copied');
+          setTimeout(() => btn.classList.remove('copied'), 1200);
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(done).catch(done);
+        } else { done(); }
+      }
+
+      document.getElementById('copyIdBtn').addEventListener('click', function (e) {
+        e.stopPropagation();
+        copyText('a1b2c3d4e5f6h7i8j0k1l', this);
+      });
+      document.querySelectorAll('[data-copy]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          copyText(document.getElementById(btn.dataset.copy).textContent, btn);
+        });
+      });
+
+      // ===== Экраны =====
+      const screenMain = document.getElementById('screenMain');
+      const screenCard = document.getElementById('screenCard');
+      const cardForm = document.getElementById('cardForm');
+      const cardSuccess = document.getElementById('cardSuccess');
+
+      document.getElementById('cardMethod').addEventListener('click', () => {
+        screenMain.classList.add('hidden');
+        screenCard.classList.remove('hidden');
+        screenCard.classList.add('form-mode');
+        window.scrollTo({ top: 0, behavior: 'auto' });
+      });
+
+      // ===== Панель подтверждения с ползунком =====
+      const sheet = document.getElementById('sheet');
+      const sheetOverlay = document.getElementById('sheetOverlay');
+      const slider = document.getElementById('slider');
+      const handle = document.getElementById('sliderHandle');
+      const finalOverlay = document.getElementById('finalOverlay');
+
+      let dragging = false;
+      let startX = 0;
+      let pos = 0;
+
+      function maxPos() {
+        return slider.clientWidth - handle.offsetWidth - 8;
+      }
+      function setHandle(x, animate) {
+        handle.style.transition = animate ? 'transform 0.25s ease' : 'none';
+        handle.style.transform = `translateX(${x}px)`;
+      }
+      function resetSlider(animate) {
+        pos = 0;
+        setHandle(0, animate);
+      }
+      function openSheet() {
+        resetSlider(false);
+        sheetOverlay.classList.add('open');
+        sheet.classList.add('open');
+      }
+      function closeSheet() {
+        sheetOverlay.classList.remove('open');
+        sheet.classList.remove('open');
+        resetSlider(false);
+      }
+
+      function confirmPayment() {
+        pos = maxPos();
+        setHandle(pos, true);
+        setTimeout(() => {
+          closeSheet();
+          cardForm.classList.add('hidden');
+          cardSuccess.classList.remove('hidden');
+          screenCard.classList.remove('form-mode');
+          // через 2 секунды — финальный текст поверх
+          setTimeout(() => finalOverlay.classList.add('open'), 2000);
+        }, 250);
+      }
+
+      handle.addEventListener('pointerdown', (e) => {
+        dragging = true;
+        startX = e.clientX - pos;
+        handle.setPointerCapture(e.pointerId);
+        handle.style.transition = 'none';
+      });
+      handle.addEventListener('pointermove', (e) => {
+        if (!dragging) return;
+        pos = Math.min(Math.max(0, e.clientX - startX), maxPos());
+        setHandle(pos, false);
+      });
+      function endDrag() {
+        if (!dragging) return;
+        dragging = false;
+        if (pos >= maxPos() * 0.9) {
+          confirmPayment();
+        } else {
+          resetSlider(true);
+        }
+      }
+      handle.addEventListener('pointerup', endDrag);
+      handle.addEventListener('pointercancel', endDrag);
+
+      document.getElementById('payBtn').addEventListener('click', openSheet);
+      sheetOverlay.addEventListener('click', closeSheet);
+    })();
+  </script>
 </body>
 </html>
