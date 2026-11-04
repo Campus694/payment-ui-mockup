@@ -16,7 +16,7 @@
     }
 
     body {
-      background-color: #161616;
+      background: radial-gradient(1200px 600px at 50% -10%, #1d1d1d 0%, #161616 55%) fixed;
       color: #ffffff;
       font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       min-height: 100vh;
@@ -54,39 +54,46 @@
     .lang-group {
       display: flex;
       gap: 6px;
+      background: #1c1c1c;
+      padding: 4px;
+      border-radius: 10px;
+      border: 1px solid #2a2a2a;
     }
 
     .lang-btn {
-      width: 46px;
-      height: 36px;
-      border-radius: 6px;
+      width: 42px;
+      height: 30px;
+      border-radius: 7px;
       border: none;
       font-family: inherit;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 500;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: background-color 0.15s ease, color 0.15s ease;
+      transition: background-color 0.18s ease, color 0.18s ease;
     }
 
     .lang-btn.active {
       background-color: #363636;
-      color: #d2d2d2;
+      color: #ffffff;
     }
 
     .lang-btn.inactive {
-      background-color: #212121;
-      color: #a8a8a8;
+      background-color: transparent;
+      color: #8f8f8f;
     }
+
+    .lang-btn.inactive:hover { color: #c5c5c5; }
 
     /* Основная карточка */
     .card {
-      background-color: #212121;
-      border-radius: 4px;
-      padding: 28px 21px 32px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+      background: linear-gradient(180deg, #242424 0%, #1f1f1f 100%);
+      border: 1px solid #2c2c2c;
+      border-radius: 16px;
+      padding: 28px 22px 32px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
     }
 
     .merchant-title {
@@ -103,9 +110,9 @@
       align-items: center;
       gap: 7px;
       color: #8c8c8c;
-      font-size: 14.3px;
+      font-size: 14px;
       font-weight: 400;
-      margin-bottom: 33px;
+      margin-bottom: 30px;
       line-height: 1.2;
       word-break: break-all;
     }
@@ -123,27 +130,26 @@
       transition: color 0.15s ease;
     }
 
-    .copy-btn:hover { color: #b5b5b5; }
-
+    .copy-btn:hover { color: #c5c5c5; }
     .copy-btn.copied { color: #4caf7a; }
 
     .amount {
-      font-size: 40px;
-      font-weight: 500;
+      font-size: 42px;
+      font-weight: 700;
       color: #ffffff;
-      line-height: 1.1;
-      margin-bottom: 10px;
+      line-height: 1.05;
+      margin-bottom: 12px;
       letter-spacing: 0.2px;
       display: flex;
       align-items: baseline;
-      gap: 0.12em;
+      gap: 0.14em;
     }
 
     .commission {
-      font-size: 16px;
+      font-size: 15px;
       color: #8c8c8c;
       font-weight: 400;
-      margin-bottom: 33px;
+      margin-bottom: 32px;
       display: flex;
       align-items: baseline;
       gap: 0.2em;
@@ -165,10 +171,10 @@
     }
 
     .method-heading {
-      font-size: 22.5px;
+      font-size: 21px;
       font-weight: 500;
       color: #ffffff;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
       letter-spacing: 0.1px;
     }
 
@@ -181,17 +187,17 @@
     .method-box {
       width: 100%;
       background-color: #262626;
-      border: 1px solid #3c3c3c;
-      border-radius: 12px;
-      padding: 21px 26px;
+      border: 1px solid #343434;
+      border-radius: 14px;
+      padding: 20px 22px;
       display: flex;
       align-items: center;
-      gap: 28px;
+      gap: 22px;
       cursor: pointer;
       text-align: left;
       font-family: inherit;
       color: inherit;
-      transition: border-color 0.15s ease, background-color 0.15s ease;
+      transition: border-color 0.18s ease, background-color 0.18s ease, transform 0.15s ease;
     }
 
     .method-box:hover {
@@ -199,19 +205,21 @@
       border-color: #4a4a4a;
     }
 
+    .method-box:active { transform: scale(0.995); }
+
     .method-icon {
-      width: 56px;
-      height: 56px;
+      width: 54px;
+      height: 54px;
       flex-shrink: 0;
       display: block;
-      color: #b0b0b0;
+      color: #cfcfcf;
     }
 
     .method-label {
-      font-size: 18px;
-      font-weight: 400;
-      color: #e0e0e0;
-      line-height: 1.48;
+      font-size: 17px;
+      font-weight: 500;
+      color: #ececec;
+      line-height: 1.4;
     }
 
     /* Экран реквизитов: кнопка прижата к низу (только в режиме формы) */
@@ -228,7 +236,7 @@
     }
 
     .card-title {
-      font-size: 24px;
+      font-size: 23px;
       font-weight: 700;
       margin-bottom: 6px;
     }
@@ -243,7 +251,7 @@
     }
 
     .req-list {
-      border-top: 1px solid #333333;
+      border-top: 1px solid #2f2f2f;
     }
 
     .req-row {
@@ -251,12 +259,12 @@
       justify-content: space-between;
       align-items: center;
       gap: 12px;
-      padding: 14px 0;
-      border-bottom: 1px solid #333333;
+      padding: 15px 0;
+      border-bottom: 1px solid #2f2f2f;
     }
 
     .req-label {
-      font-size: 13.5px;
+      font-size: 13px;
       color: #8c8c8c;
       margin-bottom: 5px;
     }
@@ -273,7 +281,7 @@
       height: 54px;
       margin-top: auto;
       border: none;
-      border-radius: 10px;
+      border-radius: 12px;
       background-color: #DF5A28;
       color: #ffffff;
       font-family: inherit;
@@ -283,100 +291,24 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: background-color 0.15s ease, transform 0.15s ease;
+      transition: background-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+      box-shadow: 0 6px 18px rgba(223, 90, 40, 0.25);
     }
 
     .pay-btn:hover { background-color: #ea7442; }
     .pay-btn:active { transform: scale(0.99); }
 
-    /* Квадратное предупреждение по центру, без кнопки */
-    .warn-overlay {
-      position: fixed;
-      inset: 0;
-      background-color: rgba(0, 0, 0, 0.6);
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.25s ease;
-      z-index: 60;
-    }
-
-    .warn-overlay.open {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .warn-box {
-      position: fixed;
-      left: 50%;
-      top: 50%;
-      width: min(320px, calc(100vw - 48px));
-      aspect-ratio: 1 / 1;
-      background-color: #212121;
-      border: 1px solid #3c3c3c;
-      border-radius: 14px;
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      transform: translate(-50%, -50%) scale(0.95);
-      opacity: 0;
-      pointer-events: none;
-      transition: transform 0.25s ease, opacity 0.25s ease;
-      z-index: 70;
-    }
-
-    .warn-box.open {
-      transform: translate(-50%, -50%) scale(1);
-      opacity: 1;
-    }
-
-    .shield-icon {
-      width: 84px;
-      height: 84px;
-      margin-bottom: 18px;
-      display: block;
-    }
-
-    .warn-text {
-      font-size: 17px;
-      font-weight: 500;
-      line-height: 1.45;
-      color: #ffffff;
-      margin-bottom: 22px;
-    }
-
-    .warn-btn {
-      background: none;
-      border: 1px solid #3c3c3c;
-      border-radius: 8px;
-      color: #e0e0e0;
-      font-family: inherit;
-      font-size: 14px;
-      font-weight: 500;
-      padding: 10px 26px;
-      cursor: pointer;
-      transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease;
-    }
-
-    .warn-btn:hover {
-      border-color: #DF5A28;
-      color: #DF5A28;
-      background-color: rgba(223, 90, 40, 0.06);
-    }
-
-    /* Экран ожидания проверки (компактный) */
+    /* Экран ожидания проверки / успех (компактный) */
     .pending {
       text-align: center;
-      padding: 12px 0 4px;
+      padding: 20px 0 8px;
     }
 
     .status-icon {
       position: relative;
       width: 72px;
       height: 64px;
-      margin: 0 auto 16px;
+      margin: 0 auto 18px;
     }
 
     .status-icon .warn {
@@ -392,7 +324,7 @@
       width: 30px;
       height: 30px;
       border-radius: 50%;
-      background-color: #212121;
+      background-color: #1f1f1f;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -415,7 +347,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
+      gap: 8px;
       font-size: 22px;
       font-weight: 700;
       margin-bottom: 8px;
@@ -447,8 +379,45 @@
       font-size: 13px;
       color: #8c8c8c;
       line-height: 1.45;
-      max-width: 260px;
+      max-width: 280px;
       margin: 0 auto;
+    }
+
+    /* Успех: круглая галочка */
+    .success-wrap {
+      padding: 36px 0 12px;
+      text-align: center;
+    }
+
+    .success-circle {
+      width: 96px;
+      height: 96px;
+      margin: 0 auto 20px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #5fd28b, #3ba86b 70%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 28px rgba(76, 175, 122, 0.35);
+      animation: popIn 0.4s ease-out;
+    }
+
+    .success-circle svg {
+      width: 46px;
+      height: 46px;
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.6); opacity: 0; }
+      70% { transform: scale(1.06); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .success-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: 0.2px;
     }
 
     /* Оверлей и панель подтверждения */
@@ -475,7 +444,8 @@
       max-width: 484px;
       margin: 0 auto;
       background-color: #212121;
-      border-radius: 16px 16px 0 0;
+      border-radius: 18px 18px 0 0;
+      border-top: 1px solid #2c2c2c;
       padding: 22px 20px 32px;
       transform: translateY(100%);
       transition: transform 0.3s ease;
@@ -487,7 +457,7 @@
     }
 
     .sheet-title {
-      font-size: 20px;
+      font-size: 19px;
       font-weight: 700;
       margin-bottom: 18px;
     }
@@ -497,8 +467,8 @@
       width: 100%;
       height: 60px;
       background-color: #262626;
-      border: 1px solid #3c3c3c;
-      border-radius: 12px;
+      border: 1px solid #383838;
+      border-radius: 14px;
       overflow: hidden;
       user-select: none;
     }
@@ -509,7 +479,7 @@
       left: 4px;
       width: 52px;
       height: 50px;
-      border-radius: 9px;
+      border-radius: 11px;
       background-color: #DF5A28;
       display: flex;
       align-items: center;
@@ -517,6 +487,7 @@
       cursor: grab;
       touch-action: none;
       z-index: 2;
+      box-shadow: 0 4px 14px rgba(223, 90, 40, 0.35);
     }
 
     .slider-handle:active { cursor: grabbing; }
@@ -528,14 +499,14 @@
       bottom: 21px;
       width: 52px;
       height: 52px;
-      border-radius: 9px;
+      border-radius: 14px;
       background-color: #DF5A28;
       border: none;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
       transition: transform 0.15s ease, background-color 0.15s ease;
       text-decoration: none;
       z-index: 30;
@@ -544,7 +515,7 @@
     .chat-fab:hover { background-color: #ea7442; }
     .chat-fab:active { transform: scale(0.96); }
 
-    /* Скелетон при загрузке данных из базы: блочный шиммер */
+    /* Скелетон */
     .skeleton {
       display: inline-block;
       border-radius: 8px;
@@ -579,10 +550,32 @@
 
     .retry-btn:hover { border-color: #DF5A28; background-color: rgba(223, 90, 40, 0.08); }
 
+    /* Кнопка «Повторить» на экране ошибки проверки */
+    .pp-check-btn {
+      margin-top: 18px;
+      background: none;
+      border: 1px solid #3c3c3c;
+      border-radius: 10px;
+      color: #e0e0e0;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 500;
+      padding: 10px 26px;
+      cursor: pointer;
+      transition: border-color .15s ease, color .15s ease, background-color .15s ease;
+    }
+
+    .pp-check-btn:hover { border-color: #DF5A28; color: #DF5A28; background-color: rgba(223,90,40,.06); }
+    .pp-check-btn:disabled { opacity: .55; cursor: default; border-color: #3c3c3c; color: #8c8c8c; background: none; }
+
+    .pp-check-error .status-icon .warn { opacity: .9; }
+    .pp-check-error .pending-title { color: #e05a5a; }
+    .pp-check-error .status-spinner .ring { animation: none; border-top-color: #e05a5a; }
+
     @media (max-width: 420px) {
       .order-id-row { font-size: 12.8px; }
       .method-box { padding: 18px 18px; gap: 20px; }
-      .method-label { font-size: 16.5px; }
+      .method-label { font-size: 16px; }
       .chat-fab { right: 18px; }
     }
   </style>
@@ -731,21 +724,22 @@
             <div class="dots"><span></span><span></span><span></span></div>
           </div>
           <p class="pending-note" data-i18n="pendingNote">Проверка занимает<br>до 2 минут, ожидайте.</p>
+
+          <!-- Кнопка повтора при ошибке проверки (показывается из JS) -->
+          <button type="button" class="pp-check-btn hidden" id="checkRetryBtn">Повторить</button>
+        </div>
+
+        <!-- Экран успеха -->
+        <div id="cardDone" class="success-wrap hidden">
+          <div class="success-circle">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M5 12.5L10 17.5L19 7" stroke="#ffffff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="success-title" data-i18n="successTitle">Успешно!</div>
         </div>
       </main>
     </div>
-  </div>
-
-  <!-- Квадратное предупреждение -->
-  <div class="warn-overlay" id="warnOverlay"></div>
-  <div class="warn-box" id="warnBox" role="dialog" aria-modal="true">
-    <svg class="shield-icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M32 3 L56 11 V30 C56 44 46 54 32 61 C18 54 8 44 8 30 V11 Z" fill="#F3C623"/>
-      <rect x="29.5" y="19" width="5" height="22" rx="2.5" fill="#161616"/>
-      <circle cx="32" cy="48" r="3" fill="#161616"/>
-    </svg>
-    <p class="warn-text" data-i18n="warnText">Оплатите строго указанную сумму, иначе платёж будет утерян.</p>
-    <button class="warn-btn" id="warnBtn" type="button" data-i18n="warnBtn">Продолжить</button>
   </div>
 
   <!-- Оверлей и панель подтверждения -->
