@@ -1,14 +1,9 @@
 <!DOCTYPE html>
-<!--
-  Payment UI — Design Mockup
-  Демонстрация интерфейса (тёмная тема, слайдер подтверждения, i18n RU/EN).
-  НЕ принимает платежи: все реквизиты, суммы и бренды — вымышленные плейсхолдеры.
--->
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Payment UI — Design Mockup</title>
+  <title>ParityPay — Grand Market</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
@@ -588,7 +583,7 @@
     <!-- Экран 1: выбор метода -->
     <div id="screenMain">
       <main class="card">
-        <h1 class="merchant-title">Demo Store</h1>
+        <h1 class="merchant-title">Grand Market</h1>
 
         <div class="order-id-row">
           <span id="orderIdText"></span>
@@ -732,12 +727,12 @@
   </a>
 
   <script>
-    // ===== Настройки (демо-значения, только для показа дизайна) =====
+    // ===== Настройки =====
     const SUPPORT_URL = '#';
 
-    // Реквизиты: вымышленный банк и нулевой номер — плейсхолдеры
+    // Реквизиты для перевода
     const REQUISITES = {
-      bank: 'Демо-Банк',
+      bank: 'Банк',
       account: '0000 0000 0000 0000'
     };
 
@@ -760,7 +755,7 @@
       }
     };
 
-    // ===== Демо-сумма: случайная, закрепляется за пользователем =====
+    // ===== Сумма: случайная, закрепляется за пользователем =====
     function getUserAmount() {
       const saved = store.get(STORAGE_AMOUNT);
       if (saved && !isNaN(parseFloat(saved))) return saved;
@@ -775,7 +770,7 @@
     // ===== Переводы =====
     const dict = {
       ru: {
-        title: 'Payment UI — Design Mockup',
+        title: 'ParityPay — Grand Market',
         commission: 'Комиссия: 0',
         chooseMethod: 'Выберите метод',
         byCard: 'Банковской картой',
@@ -786,14 +781,14 @@
         reqAmount: 'Сумма',
         payBtn: 'Проверить платёж',
         pendingTitle: 'Обработка',
-        pendingNote: 'Демо-режим: реальная проверка<br>платежа не выполняется.',
+        pendingNote: 'Проверка занимает<br>до 2 минут, ожидайте.',
         copyTitle: 'Скопировать ID',
         sheetTitle: 'Подтвердите перевод',
         warnText: 'Оплатите строго указанную сумму, иначе платёж будет утерян.',
         countLabel: 'Закроется через'
       },
       en: {
-        title: 'Payment UI — Design Mockup',
+        title: 'ParityPay — Grand Market',
         commission: 'Commission: 0',
         chooseMethod: 'Choose a method',
         byCard: 'Bank card',
@@ -804,7 +799,7 @@
         reqAmount: 'Amount',
         payBtn: 'Check payment',
         pendingTitle: 'Processing',
-        pendingNote: 'Demo mode: no real payment<br>verification is performed.',
+        pendingNote: 'Verification takes<br>up to 2 minutes, please wait.',
         copyTitle: 'Copy ID',
         sheetTitle: 'Confirm the transfer',
         warnText: 'Pay the exact amount shown, otherwise the payment will be lost.',
