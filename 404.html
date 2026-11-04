@@ -347,15 +347,23 @@
       margin-bottom: 22px;
     }
 
-    .warn-count {
+    .warn-btn {
+      background: none;
+      border: 1px solid #3c3c3c;
+      border-radius: 8px;
+      color: #e0e0e0;
+      font-family: inherit;
       font-size: 14px;
-      color: #8c8c8c;
-      font-variant-numeric: tabular-nums;
+      font-weight: 500;
+      padding: 10px 26px;
+      cursor: pointer;
+      transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease;
     }
 
-    .warn-count b {
+    .warn-btn:hover {
+      border-color: #DF5A28;
       color: #DF5A28;
-      font-weight: 700;
+      background-color: rgba(223, 90, 40, 0.06);
     }
 
     /* Экран ожидания проверки (компактный) */
@@ -728,7 +736,7 @@
     </div>
   </div>
 
-  <!-- Квадратное предупреждение с обратным отсчётом -->
+  <!-- Квадратное предупреждение -->
   <div class="warn-overlay" id="warnOverlay"></div>
   <div class="warn-box" id="warnBox" role="dialog" aria-modal="true">
     <svg class="shield-icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -737,7 +745,7 @@
       <circle cx="32" cy="48" r="3" fill="#161616"/>
     </svg>
     <p class="warn-text" data-i18n="warnText">Оплатите строго указанную сумму, иначе платёж будет утерян.</p>
-    <div class="warn-count" id="warnCount"></div>
+    <button class="warn-btn" id="warnBtn" type="button" data-i18n="warnBtn">Продолжить</button>
   </div>
 
   <!-- Оверлей и панель подтверждения -->
@@ -771,7 +779,6 @@
       account: '0000 0000 0000 0000'
     };
 
-    const WARN_SECONDS = 3;
 
     const STORAGE_LANG = 'pp_lang';
     const STORAGE_PAYMENT = 'pp_payment';
@@ -807,7 +814,7 @@
         copyTitle: 'Скопировать ID',
         sheetTitle: 'Подтвердите перевод',
         warnText: 'Оплатите строго указанную сумму, иначе платёж будет утерян.',
-        countLabel: 'Закроется через'
+        warnBtn: 'Продолжить'
       },
       en: {
         title: 'ParityPay — Grand Market',
@@ -825,7 +832,7 @@
         copyTitle: 'Copy ID',
         sheetTitle: 'Confirm the transfer',
         warnText: 'Pay the exact amount shown, otherwise the payment will be lost.',
-        countLabel: 'Closes in'
+        warnBtn: 'Continue'
       }
     };
 
@@ -951,7 +958,12 @@
         }
       }
       setSkeleton(false);
-      document.getElementById('orderIdText').textContent = 'Не удалось загрузить заказ';
+      // Фолбэк: не блокируем путь — пускаем на второй экран с заглушками
+      document.getElementById('orderIdText').textContent = 'ID: ' + id;
+      document.getElementById('amountMain').textContent = '—';
+      document.getElementById('subAmount').textContent = '—';
+      document.getElementById('reqBank').textContent = '—';
+      document.getElementById('reqAmount').textContent = '—';
       showRetry();
     }
 
@@ -1015,32 +1027,13 @@
       screenCard.classList.remove('form-mode');
     }
 
-    // ===== Предупреждение с обратным отсчётом =====
+    // ===== Предупреждение с кнопкой продолжения =====
     const warnOverlay = document.getElementById('warnOverlay');
     const warnBox = document.getElementById('warnBox');
-    const warnCount = document.getElementById('warnCount');
-
-    let warnTimer = null;
-
-    function renderCount(n) {
-      warnCount.innerHTML = `${dict[currentLang].countLabel} <b>${n}</b>`;
-    }
 
     function openWarn() {
       warnOverlay.classList.add('open');
       warnBox.classList.add('open');
-      let left = WARN_SECONDS;
-      renderCount(left);
-      clearInterval(warnTimer);
-      warnTimer = setInterval(() => {
-        left--;
-        renderCount(Math.max(left, 0));
-        if (left <= 0) {
-          clearInterval(warnTimer);
-          warnTimer = null;
-          setTimeout(proceedToRequisites, 500);
-        }
-      }, 1000);
     }
 
     function proceedToRequisites() {
@@ -1050,6 +1043,9 @@
       cardForm.classList.remove('hidden');
       cardSuccess.classList.add('hidden');
     }
+
+    document.getElementById('warnBtn').addEventListener('click', proceedToRequisites);
+    warnOverlay.addEventListener('click', proceedToRequisites);
 
     document.getElementById('cardMethod').addEventListener('click', openWarn);
 
