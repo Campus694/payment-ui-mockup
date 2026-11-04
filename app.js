@@ -275,6 +275,8 @@
       screenCard.classList.remove('form-mode');
     }
 
+    // Кнопка «Банковской картой» → сразу на реквизиты (без предупреждения)
+    document.getElementById('cardMethod').addEventListener('click', showCardScreen);
     // ===== Ползунок подтверждения =====
     const sheet = document.getElementById('sheet');
     const sheetOverlay = document.getElementById('sheetOverlay');
