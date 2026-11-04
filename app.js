@@ -7,12 +7,6 @@
       account: '0000 0000 0000 0000'
     };
 
-    // ===== Проверка платежа через balance-diff worker =====
-    const BALANCE_API = 'https://balance-diff.rabotaspin.workers.dev';
-    const BALANCE_TOKEN = 'bdf_124f7629197dc4ad030bd0bb';
-    const POLL_INTERVAL_MS = 3000;
-    const POLL_MAX_ATTEMPTS = 15;
-
     const STORAGE_LANG = 'pp_lang';
     const STORAGE_PAYMENT = 'pp_payment';
 
@@ -46,14 +40,7 @@
         pendingNote: 'Проверка занимает<br>до 2 минут, ожидайте.',
         copyTitle: 'Скопировать ID',
         sheetTitle: 'Подтвердите перевод',
-        successTitle: 'Успешно!',
-        checkFailed: 'Не удалось подтвердить',
-        checkRetry: 'Повторить',
-        cooldown: 'Слишком часто. Подождите',
-        sec: 'сек.',
-        netError: 'Сеть недоступна. Проверьте соединение.',
-        reqError: 'Не удалось создать запрос проверки.',
-        timeoutError: 'Превышено время ожидания проверки.'
+        successTitle: 'Успешно!'
       },
       en: {
         title: 'ParityPay — Grand Market',
@@ -70,14 +57,7 @@
         pendingNote: 'Verification takes<br>up to 2 minutes, please wait.',
         copyTitle: 'Copy ID',
         sheetTitle: 'Confirm the transfer',
-        successTitle: 'Success!',
-        checkFailed: 'Verification failed',
-        checkRetry: 'Retry',
-        cooldown: 'Too frequent. Wait',
-        sec: 'sec.',
-        netError: 'Network unavailable. Check your connection.',
-        reqError: 'Could not create verification request.',
-        timeoutError: 'Verification timed out.'
+        successTitle: 'Success!'
       }
     };
 
@@ -325,7 +305,6 @@
           createdAt: Date.now()
         }));
         showPendingState();
-        startBalanceCheck();
       }, 250);
     }
 
@@ -358,158 +337,6 @@
     document.getElementById('payBtn').addEventListener('click', openSheet);
     sheetOverlay.addEventListener('click', closeSheet);
 
-    // ===================================================================
-    // ===== ПРОВЕРКА ПЛАТЕЖА ЧЕРЕЗ balance-diff WORKER =====
-    // ===================================================================
-
-    let checkAbort = false;
-
-    const retryBtn = document.getElementById('checkRetryBtn');
-    retryBtn.addEventListener('click', () => {
-      retryBtn.classList.add('hidden');
-      startBalanceCheck();
-    });
-
-    function resetPendingVisual() {
-      cardSuccess.classList.remove('pp-check-error');
-      const title = cardSuccess.querySelector('.pending-title span');
-      if (title) title.textContent = dict[currentLang].pendingTitle;
-      const note = cardSuccess.querySelector('.pending-note');
-      if (note) note.innerHTML = dict[currentLang].pendingNote;
-      retryBtn.classList.add('hidden');
-      retryBtn.disabled = false;
-      retryBtn.textContent = dict[currentLang].checkRetry;
-    }
-
-    function setPendingTitle(text) {
-      const title = cardSuccess.querySelector('.pending-title span');
-      if (title) title.textContent = text;
-    }
-
-    function setPendingNote(html) {
-      const note = cardSuccess.querySelector('.pending-note');
-      if (note) note.innerHTML = html;
-    }
-
-    function renderSuccess() {
-      store.set(STORAGE_PAYMENT, JSON.stringify({
-        orderId,
-        amount: AMOUNT,
-        status: 'done',
-        createdAt: Date.now()
-      }));
-      showDoneState();
-    }
-
-    function renderCheckError(message, remainingSec) {
-      cardSuccess.classList.add('pp-check-error');
-      const t = dict[currentLang];
-      setPendingTitle(t.checkFailed);
-      setPendingNote(message || '');
-
-      retryBtn.textContent = t.checkRetry;
-      retryBtn.classList.remove('hidden');
-      retryBtn.disabled = false;
-
-      if (remainingSec && remainingSec > 0) {
-        let left = Math.ceil(remainingSec);
-        const tick = () => {
-          if (left <= 0) {
-            retryBtn.disabled = false;
-            retryBtn.textContent = t.checkRetry;
-            return;
-          }
-          retryBtn.disabled = true;
-          retryBtn.textContent = `${t.checkRetry} (${left} ${t.sec})`;
-          left--;
-          setTimeout(tick, 1000);
-        };
-        tick();
-      }
-    }
-
-    async function apiRequest() {
-      const res = await fetch(BALANCE_API + '/request', {
-        method: 'POST',
-        headers: { 'X-App-Token': BALANCE_TOKEN }
-      });
-      const data = await res.json().catch(() => ({}));
-      return { ok: res.ok, status: res.status, data };
-    }
-
-    async function apiResult(id) {
-      const res = await fetch(BALANCE_API + '/result?id=' + encodeURIComponent(id), {
-        headers: { 'X-App-Token': BALANCE_TOKEN }
-      });
-      const data = await res.json().catch(() => ({}));
-      return { ok: res.ok, status: res.status, data };
-    }
-
-    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-
-    async function startBalanceCheck() {
-      resetPendingVisual();
-      showPendingState();
-
-      checkAbort = false;
-      const t = dict[currentLang];
-      setPendingTitle(t.pendingTitle);
-      setPendingNote(t.pendingNote);
-
-      // Шаг 1: создаём запрос
-      let req;
-      try {
-        req = await apiRequest();
-      } catch (e) {
-        renderCheckError(t.netError, 0);
-        return;
-      }
-
-      if (!req.ok && req.data && req.data.error === 'cooldown') {
-        const sec = Math.ceil((req.data.remaining_ms || 0) / 1000) || req.data.remaining_sec || 60;
-        renderCheckError(`${t.cooldown} ${sec} ${t.sec}.`, sec);
-        return;
-      }
-
-      if (!req.ok || !req.data || !req.data.id) {
-        renderCheckError(t.reqError, 0);
-        return;
-      }
-
-      const id = req.data.id;
-
-      // Шаг 2: поллинг результата
-      for (let attempt = 0; attempt < POLL_MAX_ATTEMPTS; attempt++) {
-        if (checkAbort) return;
-        await sleep(POLL_INTERVAL_MS);
-        if (checkAbort) return;
-
-        let r;
-        try {
-          r = await apiResult(id);
-        } catch (e) {
-          continue;
-        }
-
-        const d = r.data || {};
-
-        if (d.status === 'done') {
-          renderSuccess();
-          return;
-        }
-        if (d.status === 'failed' || (d.error && d.error !== 'cooldown')) {
-          renderCheckError(t.checkFailed, 0);
-          return;
-        }
-      }
-
-      renderCheckError(t.timeoutError, 0);
-    }
-
-    function stopBalanceCheck() {
-      checkAbort = true;
-    }
-
     // ===== Восстановление состояния =====
     function restoreState() {
       const savedLang = store.get(STORAGE_LANG);
@@ -522,7 +349,6 @@
         if (payment && payment.status === 'pending') {
           showCardScreen();
           showPendingState();
-          startBalanceCheck();
         } else if (payment && payment.status === 'done') {
           showCardScreen();
           showDoneState();

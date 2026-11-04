@@ -550,28 +550,6 @@
 
     .retry-btn:hover { border-color: #DF5A28; background-color: rgba(223, 90, 40, 0.08); }
 
-    /* Кнопка «Повторить» на экране ошибки проверки */
-    .pp-check-btn {
-      margin-top: 18px;
-      background: none;
-      border: 1px solid #3c3c3c;
-      border-radius: 10px;
-      color: #e0e0e0;
-      font-family: inherit;
-      font-size: 14px;
-      font-weight: 500;
-      padding: 10px 26px;
-      cursor: pointer;
-      transition: border-color .15s ease, color .15s ease, background-color .15s ease;
-    }
-
-    .pp-check-btn:hover { border-color: #DF5A28; color: #DF5A28; background-color: rgba(223,90,40,.06); }
-    .pp-check-btn:disabled { opacity: .55; cursor: default; border-color: #3c3c3c; color: #8c8c8c; background: none; }
-
-    .pp-check-error .status-icon .warn { opacity: .9; }
-    .pp-check-error .pending-title { color: #e05a5a; }
-    .pp-check-error .status-spinner .ring { animation: none; border-top-color: #e05a5a; }
-
     @media (max-width: 420px) {
       .order-id-row { font-size: 12.8px; }
       .method-box { padding: 18px 18px; gap: 20px; }
@@ -725,8 +703,7 @@
           </div>
           <p class="pending-note" data-i18n="pendingNote">Проверка занимает<br>до 2 минут, ожидайте.</p>
 
-          <!-- Кнопка повтора при ошибке проверки (показывается из JS) -->
-          <button type="button" class="pp-check-btn hidden" id="checkRetryBtn">Повторить</button>
+
         </div>
 
         <!-- Экран успеха -->
